@@ -58,6 +58,7 @@ namespace AnonymusRadio
                 LabApi.Events.Handlers.PlayerEvents.ChangedNickname += OnChangedNickname;
                 LabApi.Events.Handlers.PlayerEvents.Spawned += OnSpawned;
                 LabApi.Events.Handlers.ServerEvents.RoundEnded += OnRoundEnded;
+                Logger.Info("Events registered!");
 
             }
             public void UnregisterEvents()
@@ -66,12 +67,14 @@ namespace AnonymusRadio
                 LabApi.Events.Handlers.PlayerEvents.ChangedNickname -= OnChangedNickname;
                 LabApi.Events.Handlers.PlayerEvents.Spawned -= OnSpawned;
                 LabApi.Events.Handlers.ServerEvents.RoundEnded -= OnRoundEnded;
+                Logger.Info("Events unregistered!");
 
             }
 
             public void OnPlayerSendingVoiceMessages(PlayerSendingVoiceMessageEventArgs ev)
             {
                 Timing.RunCoroutine(seeIfTalking(ev.Player));
+                Logger.Info("Player started talking!");
             }
 
             public void OnChangedNickname(PlayerChangedNicknameEventArgs ev)
@@ -79,16 +82,22 @@ namespace AnonymusRadio
                 string? newNick = ev.NewNickname;
                 int playerId = ev.Player.PlayerId;
 
-                if (newNick != null && newNick != Instance.Config.displayNameToChangeTo)
+                if (newNick != null && newNick != Plugin.Instance.Config.displayNameToChangeTo)
                 {
                     PlayerRadioInfo.originalName[playerId] = newNick;
+                    Logger.Info($"Updated original name for player {playerId}: {newNick}");
                 }
-                else if (newNick == null) 
+                else if (newNick == null)
                 {
                     if (!PlayerRadioInfo.originalName.ContainsKey(playerId))
                     {
                         PlayerRadioInfo.originalName[playerId] = ev.Player.DisplayName;
+                        Logger.Info($"Player {playerId} reset to regular name: {ev.Player.DisplayName}");
                     }
+                }
+                else
+                {
+                    Logger.Info($"Ignoring nickname change to anonymous name for player {playerId}");
                 }
             }
             public void OnSpawned(PlayerSpawnedEventArgs ev)
@@ -103,6 +112,7 @@ namespace AnonymusRadio
                 PlayerRadioInfo.originalName.Clear();
                 PlayerRadioInfo.playersUsingRadio.Clear();
                 Timing.KillCoroutines();
+                Logger.Info("Resources succesfully flushed!");
             }
 
             public IEnumerator<float> seeIfTalking(Player player)
@@ -121,6 +131,7 @@ namespace AnonymusRadio
                         
                         PlayerRadioInfo.SetDeafultInfos(player);
                         Timing.KillCoroutines();
+                        Logger.Info("Player stopped talking on radio!");
                     }
                 }
             }
